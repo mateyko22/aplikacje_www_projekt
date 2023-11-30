@@ -2,97 +2,68 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 
 
-class Department(models.Model):
-    class DepartmentChoices(models.TextChoices):
-        FANTASY = 'Fantasy'
-        SCIFY = 'Sci-fy'
-        HISTORY = 'History'
-        ADVENTURE = 'Adventure'
-        CHILDREN = 'Children'
-        SCIENCE = 'Science'
-        OTHER = 'Other'
-
-    name = models.CharField(
-        'Name',
-        max_length=20,
-        choices=DepartmentChoices.choices,
-    )
-    is_active = models.BooleanField(
-        'Is Active',
-        default=True,
-    )
-
-
-class Book(models.Model):
-    name = models.CharField(
-        'Name',
+class Author(models.Model):
+    first_name = models.CharField(
+        'First name',
         max_length=255,
     )
-    author = models.CharField(
-        'Author',
-        max_length=100,
+    last_name = models.CharField(
+        'Last name',
+        max_length=255,
     )
-    pub_date = models.DateField(
-        'Publication date',
+    birth_date = models.DateField(
+        'Birth date',
     )
-    department = models.ForeignKey(
-        Department,
-        on_delete=models.SET_NULL,
-        verbose_name='Department',
-        blank=True,
+    death_date = models.DateField(
+        'Death date',
         null=True,
+        blank=True,
+    )
+    biography = models.TextField(
+        'Biography',
     )
 
     class Meta:
-        ordering = ['author']
+        ordering = ['last_name']
+
+    def __str__(self):
+        return f'{self.last_name} {self.first_name}'
 
 
-class Magazine(models.Model):
-    name = models.CharField(
-        'Name',
+class Book(models.Model):
+    title = models.CharField(
+        'Title',
         max_length=255,
     )
-    author = models.CharField(
-        'Author',
+    author = models.ForeignKey(
+        Author,
+        on_delete=models.CASCADE,
+        verbose_name='Author',
+    )
+    genre = models.CharField(
+        'Genre',
         max_length=100,
-    )
-    pub_date = models.DateField(
-        'Publication date',
-    )
-    edition = models.CharField(
-        'Edition',
-        max_length=50,
-    )
-    department = models.ForeignKey(
-        Department,
-        on_delete=models.SET_NULL,
-        verbose_name='Department',
-        blank=True,
         null=True,
-    )
-
-
-class Movie(models.Model):
-    class MovieMediaTypes(models.TextChoices):
-        DVD = 'DVD'
-        ONLINE = 'online'
-
-    name = models.CharField(
-        'Name',
-        max_length=255,
-    )
-    director = models.CharField(
-        'Author',
-        max_length=100,
+        blank=True,
     )
     pub_date = models.DateField(
         'Publication date',
     )
-    media_type = models.CharField(
-        'Type',
-        max_length=25,
-        choices=MovieMediaTypes.choices,
+    isbn = models.CharField(
+        'ISBN Number',
+        max_length=13,
+        unique=True,
     )
+    availability = models.BooleanField(
+        'Availability',
+        default=True,
+    )
+
+    class Meta:
+        ordering = ['author', 'title']
+
+    def __str__(self):
+        return f'{self.title}'
 
 
 class CustomUser(AbstractUser):
@@ -100,17 +71,72 @@ class CustomUser(AbstractUser):
         """CustomUser role choices."""
 
         LIBRARIAN = 'Librarian'
-        CUSTOMER = 'Customer'
+        READER = 'Reader'
 
     who_is = models.CharField(
         choices=WhoIsChoices.choices,
-        default=WhoIsChoices.CUSTOMER,
+        default=WhoIsChoices.READER,
         verbose_name='Role',
     )
-    department = models.ForeignKey(
-        Department,
-        on_delete=models.SET_NULL,
-        verbose_name='Department',
-        blank=True,
-        null=True,
+
+    def __str__(self):
+        return f'{self.first_name} {self.last_name}'
+
+
+class Loan(models.Model):
+    book = models.ForeignKey(
+        Book,
+        on_delete=models.CASCADE,
+        verbose_name='Book',
     )
+    reader = models.ForeignKey(
+        CustomUser,
+        on_delete=models.CASCADE,
+        verbose_name='Reader',
+    )
+    borrow_date = models.DateField(
+        'Borrow date',
+        auto_now_add=True
+    )
+    return_date = models.DateField(
+        'Return date',
+        null=True,
+        blank=True
+    )
+    returned = models.BooleanField(
+        'Is returned',
+        default=False,
+    )
+
+    class Meta:
+        ordering = ['book', 'borrow_date']
+
+    def __str__(self):
+        return f'{self.book} - {self.reader}'
+
+
+class BookReview(models.Model):
+    book = models.ForeignKey(
+        Book,
+        on_delete=models.CASCADE,
+        verbose_name='Book',
+    )
+    reader = models.ForeignKey(
+        CustomUser,
+        on_delete=models.CASCADE,
+        verbose_name='Reader',
+    )
+    rating = models.IntegerField(
+        'Rating',
+        choices=zip(range(1, 10), range(1, 10)),
+    )
+    comment = models.TextField(
+        'Comment',
+    )
+    date_added = models.DateTimeField(
+        'Date added',
+        auto_now_add=True,
+    )
+
+    def __str__(self):
+        return f'{self.book} - {self.reader} - {self.rating}'
