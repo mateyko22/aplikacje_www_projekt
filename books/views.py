@@ -1,15 +1,15 @@
-from django.shortcuts import render
 from django.views.generic import TemplateView
-from rest_framework.decorators import api_view
+from rest_framework.authentication import BasicAuthentication
+from rest_framework.authentication import TokenAuthentication
 from rest_framework.generics import CreateAPIView
 from rest_framework.generics import ListAPIView
 from rest_framework.generics import ListCreateAPIView
 from rest_framework.generics import RetrieveAPIView
 from rest_framework.generics import RetrieveUpdateDestroyAPIView
 from rest_framework.generics import UpdateAPIView
+from rest_framework.permissions import AllowAny
 from rest_framework.permissions import IsAdminUser
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
 
 from .models import Author
 from .models import Book
@@ -19,7 +19,9 @@ from .models import Loan
 from .serializers import AuthorSerializer
 from .serializers import BookReviewSerializer
 from .serializers import BookSerializer
+from .serializers import CustomUserSerializer
 from .serializers import LoanSerializer
+from .serializers import RegisterSerializer
 
 
 class IndexView(TemplateView):
@@ -30,6 +32,8 @@ class IndexView(TemplateView):
 class AuthorList(ListAPIView):
     queryset = Author.objects.all()
     serializer_class = AuthorSerializer
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [BasicAuthentication, TokenAuthentication]
 
 
 class AuthorDetail(RetrieveAPIView):
@@ -42,6 +46,7 @@ class BookList(ListAPIView):
     queryset = Book.objects.all()
     serializer_class = BookSerializer
     permission_classes = [IsAuthenticated]
+    authentication_classes = [BasicAuthentication, TokenAuthentication]
 
 
 class BookDetail(RetrieveAPIView):
@@ -110,3 +115,25 @@ class BookReviews(ListAPIView):
     def get_queryset(self):
         book = self.kwargs.get('pk')
         return BookReview.objects.filter(book=book)
+
+
+class UserDetail(RetrieveAPIView):
+    queryset = CustomUser.objects.all()
+    serializer_class = CustomUserSerializer
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [BasicAuthentication, TokenAuthentication]
+
+
+class RegisterUser(CreateAPIView):
+    permission_classes = (AllowAny,)
+    serializer_class = RegisterSerializer
+
+
+class UserLoans(ListAPIView):
+    serializer_class = LoanSerializer
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [BasicAuthentication, TokenAuthentication]
+
+    def get_queryset(self):
+        user = self.kwargs.get('pk')
+        return Loan.objects.filter(reader=user)
