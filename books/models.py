@@ -1,5 +1,5 @@
-from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.db import models
 
 
 class Author(models.Model):
@@ -21,6 +21,8 @@ class Author(models.Model):
     )
     biography = models.TextField(
         'Biography',
+        null=True,
+        blank=True,
     )
 
     class Meta:
@@ -132,6 +134,8 @@ class BookReview(models.Model):
     )
     comment = models.TextField(
         'Comment',
+        null=True,
+        blank=True,
     )
     date_added = models.DateTimeField(
         'Date added',
