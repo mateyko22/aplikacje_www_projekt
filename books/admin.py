@@ -22,6 +22,11 @@ class AuthorAdmin(admin.ModelAdmin):
 class BookAdmin(admin.ModelAdmin):
     list_display = ['title', 'author', 'pub_date', 'availability', 'isbn']
     list_filter = ('author', 'availability')
+    actions = ['set_as_available']
+
+    @admin.action(description='Set as available')
+    def set_as_available(self, request, queryset):
+        queryset.update(availability=True)
 
 
 @admin.register(Loan)

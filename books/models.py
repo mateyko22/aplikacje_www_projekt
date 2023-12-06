@@ -1,5 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from datetime import timedelta
+from datetime import date
 
 
 class Author(models.Model):
@@ -81,6 +83,11 @@ class CustomUser(AbstractUser):
         verbose_name='Role',
     )
 
+    token = models.CharField(
+        max_length=255,
+        blank=True,
+    )
+
     def __str__(self):
         return f'{self.first_name} {self.last_name}'
 
@@ -100,6 +107,11 @@ class Loan(models.Model):
         'Borrow date',
         auto_now_add=True
     )
+    due_date = models.DateField(
+        'Due date',
+        null=True,
+        blank=True
+    )
     return_date = models.DateField(
         'Return date',
         null=True,
@@ -116,6 +128,11 @@ class Loan(models.Model):
     def __str__(self):
         return f'{self.book} - {self.reader}'
 
+    def save(self, *args, **kwargs):
+        if not self.due_date:
+            self.due_date = date.today() + timedelta(days=14)
+        super().save(*args, **kwargs)
+
 
 class BookReview(models.Model):
     book = models.ForeignKey(
@@ -130,7 +147,7 @@ class BookReview(models.Model):
     )
     rating = models.IntegerField(
         'Rating',
-        choices=zip(range(1, 10), range(1, 10)),
+        choices=zip(range(1, 11), range(1, 11)),
     )
     comment = models.TextField(
         'Comment',
