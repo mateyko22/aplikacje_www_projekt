@@ -39,5 +39,3 @@ class LoanAdmin(admin.ModelAdmin):
 class BookReviewAdmin(admin.ModelAdmin):
     list_display = ['book', 'reader', 'rating', 'comment', 'date_added']
     list_filter = ('book', 'reader', 'rating')
-
-

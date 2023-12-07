@@ -63,7 +63,7 @@ class BookList(ListAPIView):
             try:
                 authors = Author.objects.filter(last_name__istartswith=author_param)
             except Author.DoesNotExist:
-                return HttpResponse(f"Nie znaleziono autora.")
+                return HttpResponse(f"Author not found.")
 
             queryset = Book.objects.filter(author__in=authors)
         else:
